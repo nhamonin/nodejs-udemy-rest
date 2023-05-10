@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nhamonin/nodejs-udemy-rest.git"
@@ -15,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/nhamonin/nodejs-udemy-rest/issues"
   },
-  "homepage": "https://github.com/nhamonin/nodejs-udemy-rest#readme"
+  "homepage": "https://github.com/nhamonin/nodejs-udemy-rest#readme",
+  "dependencies": {
+    "fastify": "^4.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
 }

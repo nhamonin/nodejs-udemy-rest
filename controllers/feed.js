@@ -2,8 +2,14 @@ const getPosts = async (request, reply) => {
   return {
     posts: [
       {
+        _id: '1',
         title: 'First post',
         content: 'This is the content of the first post',
+        imageUrl: 'images/cat.jpg',
+        creator: {
+          name: 'Nazarii',
+        },
+        createdAt: new Date(),
       },
     ],
   };

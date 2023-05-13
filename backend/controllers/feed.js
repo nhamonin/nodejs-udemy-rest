@@ -22,9 +22,13 @@ const postPost = async (request, reply) => {
   return {
     message: 'Post created successfully!',
     post: {
-      id: new Date().toISOString(),
+      _id: new Date().toISOString(),
       title,
       content,
+      creator: {
+        name: 'Nazarii',
+      },
+      createdAt: new Date(),
     },
   };
 };

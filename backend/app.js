@@ -22,6 +22,7 @@ app.register(fastifyStatic, {
   root: path.join(path.resolve(), 'backend/images'),
   prefix: '/backend/images/',
 });
+app.log.info(path.join(path.resolve(), 'backend/images'));
 app.register(Cors, { origin: '*' });
 app.register(feedRoutes, { prefix: '/feed' });
 

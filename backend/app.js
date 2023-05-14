@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import fastify from 'fastify';
 import Cors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
@@ -17,8 +19,8 @@ try {
   app.log.error(err);
 }
 app.register(fastifyStatic, {
-  root: path.join(__dirname, 'images'),
-  prefix: '/images/',
+  root: path.join(path.resolve(), 'backend/images'),
+  prefix: '/backend/images/',
 });
 app.register(Cors, { origin: '*' });
 app.register(feedRoutes, { prefix: '/feed' });

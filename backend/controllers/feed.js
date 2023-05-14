@@ -1,3 +1,5 @@
+import { Post } from '../models/post.js';
+
 const getPosts = async (request, reply) => {
   return {
     posts: [
@@ -17,19 +19,20 @@ const getPosts = async (request, reply) => {
 
 const postPost = async (request, reply) => {
   const { title, content } = request.body;
+  const post = new Post({
+    title,
+    content,
+    imageUrl: 'images/cat.jpg',
+    creator: {
+      name: 'Nazarii',
+    },
+  });
 
+  await post.save();
   reply.code(201);
   return {
     message: 'Post created successfully!',
-    post: {
-      _id: new Date().toISOString(),
-      title,
-      content,
-      creator: {
-        name: 'Nazarii',
-      },
-      createdAt: new Date(),
-    },
+    post,
   };
 };
 

@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import Cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
@@ -15,7 +16,10 @@ try {
 } catch (err) {
   app.log.error(err);
 }
-
+app.register(fastifyStatic, {
+  root: path.join(__dirname, 'images'),
+  prefix: '/images/',
+});
 app.register(Cors, { origin: '*' });
 app.register(feedRoutes, { prefix: '/feed' });
 

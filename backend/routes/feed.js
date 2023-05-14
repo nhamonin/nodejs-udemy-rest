@@ -20,4 +20,6 @@ export async function feedRoutes(fastify, options) {
     },
     feedController.postPost
   );
+  // GET /feed/post/:postId
+  fastify.get('/post/:postId', feedController.getPost);
 }

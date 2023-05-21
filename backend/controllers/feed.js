@@ -1,4 +1,9 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { Post } from '../models/post.js';
+
+const uploadDir = path.resolve('backend', 'images');
 
 const getPosts = async (request, reply) => {
   const posts = await Post.find();
@@ -10,22 +15,41 @@ const getPosts = async (request, reply) => {
 };
 
 const postPost = async (request, reply) => {
-  const { title, content } = request.body;
-  const post = new Post({
-    title,
-    content,
-    imageUrl: 'images/cat.jpg',
-    creator: {
-      name: 'Nazarii',
-    },
-  });
+  try {
+    const { title, content, image } = request.body;
+    const [name, ext] = image.filename.split('.');
+    const newName = `${name}-${Date.now()}.${ext}`;
+    const uploadPath = path.join(uploadDir, newName);
+    const fileStream = fs.createWriteStream(uploadPath);
+    const file = await image.toBuffer();
 
-  await post.save();
-  reply.code(201);
-  return {
-    message: 'Post created successfully!',
-    post,
-  };
+    fileStream.write(file);
+
+    const post = new Post({
+      title: title.value,
+      content: content.value,
+      imageUrl: `backend/images/${newName}`,
+      creator: {
+        name: 'Nazarii',
+      },
+    });
+
+    await post.save();
+
+    reply.code(201);
+    reply.log.info('Post created successfully!');
+    return {
+      message: 'Post created successfully!',
+      post,
+    };
+  } catch (error) {
+    reply.log.error(error);
+    reply.code(500);
+    return {
+      error: 'Internal Server Error',
+      message: 'An error occurred while creating the post.',
+    };
+  }
 };
 
 const getPost = async (request, reply) => {
@@ -45,10 +69,4 @@ const getPost = async (request, reply) => {
   };
 };
 
-const feedController = {
-  getPosts,
-  postPost,
-  getPost,
-};
-
-export default feedController;
+export { getPosts, postPost, getPost };

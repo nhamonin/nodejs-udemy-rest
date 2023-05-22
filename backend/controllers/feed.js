@@ -142,6 +142,11 @@ const deletePost = async (request, reply) => {
   clearImage(post.imageUrl);
   await Post.findByIdAndRemove(postId);
 
+  const user = await User.findById(request.userId);
+
+  user.posts.pull(postId);
+  await user.save();
+
   reply.code(200);
   return {
     message: 'Post deleted successfully!',

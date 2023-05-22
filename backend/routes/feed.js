@@ -5,7 +5,7 @@ import {
   putPost,
   deletePost,
 } from '../controllers/feed.js';
-import { feedSchema } from '../validation/feed/feedSchema.js';
+import { feedSchema } from '../validation/feedSchema.js';
 
 export async function feedRoutes(fastify, options) {
   // GET /feed/posts

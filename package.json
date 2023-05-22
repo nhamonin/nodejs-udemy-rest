@@ -7,9 +7,6 @@
     "start": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
   },
   "dependencies": {
-    "@fastify/cors": "^8.2.1",
-    "@fastify/multipart": "^7.6.0",
-    "@fastify/static": "^6.10.1",
     "concurrently": "^6.0.0",
     "nodemon": "^2.0.12"
   },

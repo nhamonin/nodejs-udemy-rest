@@ -1,9 +1,8 @@
-import fs from 'node:fs';
 import path from 'node:path';
+import fs from 'node:fs';
 
 import { Post } from '../models/post.js';
-
-const uploadDir = path.resolve('backend', 'images');
+import { saveImage } from '../utils/saveImage.js';
 
 const getPosts = async (request, reply) => {
   const posts = await Post.find();
@@ -17,14 +16,7 @@ const getPosts = async (request, reply) => {
 const postPost = async (request, reply) => {
   try {
     const { title, content, image } = request.body;
-    const [name, ext] = image.filename.split('.');
-    const newName = `${name}-${Date.now()}.${ext}`;
-    const uploadPath = path.join(uploadDir, newName);
-    const fileStream = fs.createWriteStream(uploadPath);
-    const file = await image.toBuffer();
-
-    fileStream.write(file);
-
+    const newName = await saveImage(image);
     const post = new Post({
       title: title.value,
       content: content.value,
@@ -69,4 +61,41 @@ const getPost = async (request, reply) => {
   };
 };
 
-export { getPosts, postPost, getPost };
+const putPost = async (request, reply) => {
+  const { postId } = request.params;
+  const { title, content, image } = request.body;
+  let imageUrl = image.value;
+
+  if (image.mimetype.includes('image')) {
+    let newName = await saveImage(image);
+    imageUrl = `backend/images/${newName}`;
+  }
+
+  if (!imageUrl) {
+    reply.code(422);
+    return {
+      message: 'No file picked.',
+    };
+  }
+
+  const post = await Post.findById(postId);
+  imageUrl !== post.imageUrl && clearImage(post.imageUrl);
+  post.title = title.value;
+  post.content = content.value;
+  post.imageUrl = imageUrl;
+
+  await post.save();
+
+  reply.code(200);
+  return {
+    message: 'Post updated successfully!',
+    post,
+  };
+};
+
+const clearImage = (filePath) => {
+  filePath = path.join(process.cwd(), filePath);
+  fs.unlink(filePath, (err) => console.log(err));
+};
+
+export { getPosts, postPost, getPost, putPost };

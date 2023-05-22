@@ -108,3 +108,5 @@ dist
 .vscode/
 
 .DS_Store
+
+/backend/images/

@@ -65,4 +65,39 @@ const login = async (request, reply) => {
   };
 };
 
-export { signup, login };
+const getStatus = async (request, reply) => {
+  console.log(request.userId);
+  const user = await User.findById(request.userId);
+
+  if (!user) {
+    reply.code(404);
+    throw new Error('User not found!');
+  }
+
+  reply.code(200);
+  return {
+    status: user.status,
+  };
+};
+
+const updateStatus = async (request, reply) => {
+  const { status } = request.body;
+
+  const user = await User.findById(request.userId);
+
+  if (!user) {
+    reply.code(404);
+    throw new Error('User not found!');
+  }
+
+  user.status = status;
+  await user.save();
+
+  reply.code(200);
+  return {
+    message: 'Status updated successfully!',
+    status: user.status,
+  };
+};
+
+export { signup, login, getStatus, updateStatus };

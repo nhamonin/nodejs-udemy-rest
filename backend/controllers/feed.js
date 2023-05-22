@@ -5,11 +5,17 @@ import { Post } from '../models/post.js';
 import { saveImage } from '../utils/saveImage.js';
 
 const getPosts = async (request, reply) => {
-  const posts = await Post.find();
+  const page = request.query.page || 1;
+  const perPage = 2;
+  const totalItems = await Post.find().countDocuments();
+  const posts = await Post.find()
+    .skip((page - 1) * perPage)
+    .limit(perPage);
 
   return {
     message: 'Fetched posts successfully!',
     posts,
+    totalItems,
   };
 };
 

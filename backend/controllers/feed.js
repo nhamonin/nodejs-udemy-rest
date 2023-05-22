@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 import { Post } from '../models/post.js';
+import { User } from '../models/user.js';
 import { saveImage } from '../utils/saveImage.js';
 
 const getPosts = async (request, reply) => {
@@ -27,18 +28,23 @@ const postPost = async (request, reply) => {
       title: title.value,
       content: content.value,
       imageUrl: `backend/images/${newName}`,
-      creator: {
-        name: 'Nazarii',
-      },
+      creator: request.userId,
     });
-
     await post.save();
+
+    const user = await User.findById(request.userId);
+    user.posts.push(post);
+    await user.save();
 
     reply.code(201);
     reply.log.info('Post created successfully!');
     return {
       message: 'Post created successfully!',
       post,
+      creator: {
+        _id: user._id,
+        name: user.name,
+      },
     };
   } catch (error) {
     reply.log.error(error);

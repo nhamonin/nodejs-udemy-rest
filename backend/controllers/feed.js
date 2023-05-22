@@ -93,9 +93,22 @@ const putPost = async (request, reply) => {
   };
 };
 
+const deletePost = async (request, reply) => {
+  const { postId } = request.params;
+
+  const post = await Post.findById(postId);
+  clearImage(post.imageUrl);
+  await Post.findByIdAndRemove(postId);
+
+  reply.code(200);
+  return {
+    message: 'Post deleted successfully!',
+  };
+};
+
 const clearImage = (filePath) => {
   filePath = path.join(process.cwd(), filePath);
   fs.unlink(filePath, (err) => console.log(err));
 };
 
-export { getPosts, postPost, getPost, putPost };
+export { getPosts, postPost, getPost, putPost, deletePost };

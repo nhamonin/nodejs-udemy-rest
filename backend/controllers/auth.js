@@ -1,13 +1,16 @@
+import bcrypt from 'bcryptjs';
+
 import { User } from '../models/user.js';
 
 const signup = async (request, reply) => {
   const { email, name, password } = request.body;
 
+  const hashedPassword = await bcrypt.hash(password, 12);
+
   const user = new User({
-    email: email.value,
-    password: password.value,
-    name: name.value,
-    status: 'I am new!',
+    email: email,
+    password: hashedPassword,
+    name: name,
   });
 
   await user.save();
@@ -16,7 +19,7 @@ const signup = async (request, reply) => {
   reply.log.info('User created successfully!');
   return {
     message: 'User created successfully!',
-    user,
+    userId: user._id,
   };
 };
 

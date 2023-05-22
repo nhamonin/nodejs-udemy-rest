@@ -6,16 +6,25 @@ import {
   deletePost,
 } from '../controllers/feed.js';
 import { feedSchema } from '../validation/feedSchema.js';
+import isAuthenticated from '../hooks/is-auth.js';
 
 export async function feedRoutes(fastify, options) {
   // GET /feed/posts
-  fastify.get('/posts', getPosts);
+  fastify.get('/posts', { preHandler: isAuthenticated }, getPosts);
   // POST /feed/post
-  fastify.post('/post', { schema: feedSchema }, postPost);
+  fastify.post(
+    '/post',
+    { preHandler: isAuthenticated, schema: feedSchema },
+    postPost
+  );
   // GET /feed/post/:postId
-  fastify.get('/post/:postId', getPost);
+  fastify.get('/post/:postId', { preHandler: isAuthenticated }, getPost);
   // PUT /feed/post/:postId
-  fastify.put('/post/:postId', { schema: feedSchema }, putPost);
+  fastify.put(
+    '/post/:postId',
+    { preHandler: isAuthenticated, schema: feedSchema },
+    putPost
+  );
   // DELETE /feed/post/:postId
-  fastify.delete('/post/:postId', deletePost);
+  fastify.delete('/post/:postId', { preHandler: isAuthenticated }, deletePost);
 }

@@ -91,6 +91,21 @@ const putPost = async (request, reply) => {
   }
 
   const post = await Post.findById(postId);
+
+  if (!post) {
+    reply.code(404);
+    return {
+      message: 'Post not found!',
+    };
+  }
+
+  if (post.creator.toString() !== request.userId) {
+    reply.code(403);
+    return {
+      message: 'Not authorized!',
+    };
+  }
+
   imageUrl !== post.imageUrl && clearImage(post.imageUrl);
   post.title = title.value;
   post.content = content.value;
@@ -109,6 +124,21 @@ const deletePost = async (request, reply) => {
   const { postId } = request.params;
 
   const post = await Post.findById(postId);
+
+  if (!post) {
+    reply.code(404);
+    return {
+      message: 'Post not found!',
+    };
+  }
+
+  if (post.creator.toString() !== request.userId) {
+    reply.code(403);
+    return {
+      message: 'Not authorized!',
+    };
+  }
+
   clearImage(post.imageUrl);
   await Post.findByIdAndRemove(postId);
 

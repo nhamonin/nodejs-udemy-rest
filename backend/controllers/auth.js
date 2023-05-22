@@ -6,6 +6,13 @@ import { User } from '../models/user.js';
 const signup = async (request, reply) => {
   const { email, name, password } = request.body;
 
+  const userExists = await User.findOne({ email: email });
+
+  if (userExists) {
+    reply.code(409);
+    throw new Error('User already exists!');
+  }
+
   const hashedPassword = await bcrypt.hash(password, 12);
 
   const user = new User({

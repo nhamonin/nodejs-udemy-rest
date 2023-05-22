@@ -19,13 +19,14 @@
   },
   "homepage": "https://github.com/nhamonin/nodejs-udemy-rest#readme",
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "fastify": "^4.17.0",
-    "mongoose": "^7.1.1",
     "@fastify/cors": "^8.2.1",
     "@fastify/multipart": "^7.6.0",
     "@fastify/static": "^6.10.1",
-    "bcryptjs": "^2.4.3"
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.17.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.1.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

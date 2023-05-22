@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 
 import envToLogger from './utils/logger.js';
 import { feedRoutes } from './routes/feed.js';
+import { authRoutes } from './routes/auth.js';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.register(fastifyMultipart, {
 });
 app.register(Cors, { origin: '*' });
 app.register(feedRoutes, { prefix: '/feed' });
+app.register(authRoutes, { prefix: '/auth' });
 
 app.listen({ host: '::1', port: 8080 }, (err, address) => {
   if (err) {

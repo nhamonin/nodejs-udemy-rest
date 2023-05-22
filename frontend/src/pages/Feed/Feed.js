@@ -39,6 +39,32 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
+
+    let socket = new WebSocket('ws://localhost:8080');
+
+    socket.onopen = function(e) {
+      console.log('[open] Connection established');
+      console.log('Sending to server');
+      socket.send('My message');
+    };
+
+    socket.onmessage = function(event) {
+      console.log(`[message] Data received from server: ${event.data}`);
+    };
+
+    socket.onerror = function(error) {
+      console.error(`[error] ${error.message}`);
+    };
+
+    socket.onclose = function(event) {
+      if (event.wasClean) {
+        console.log(
+          `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`
+        );
+      } else {
+        console.log('[close] Connection died');
+      }
+    };
   }
 
   loadPosts = (direction) => {

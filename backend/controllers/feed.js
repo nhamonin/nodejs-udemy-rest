@@ -12,6 +12,7 @@ const getPosts = async (request, reply) => {
   const totalItems = await Post.find().countDocuments();
   const posts = await Post.find()
     .populate('creator')
+    .sort({ createdAt: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
@@ -97,7 +98,7 @@ const putPost = async (request, reply) => {
     };
   }
 
-  const post = await Post.findById(postId);
+  const post = await Post.findById(postId).populate('creator');
 
   if (!post) {
     reply.code(404);
@@ -106,7 +107,7 @@ const putPost = async (request, reply) => {
     };
   }
 
-  if (post.creator.toString() !== request.userId) {
+  if (post.creator._id.toString() !== request.userId) {
     reply.code(403);
     return {
       message: 'Not authorized!',
@@ -118,8 +119,12 @@ const putPost = async (request, reply) => {
   post.content = content.value;
   post.imageUrl = imageUrl;
 
-  await post.save();
-
+  const updatedPost = await post.save();
+  connections.forEach((connection) => {
+    connection.socket.send(
+      JSON.stringify({ event: 'posts', action: 'update', post: updatedPost })
+    );
+  });
   reply.code(200);
   return {
     message: 'Post updated successfully!',

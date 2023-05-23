@@ -154,6 +154,12 @@ const deletePost = async (request, reply) => {
   clearImage(post.imageUrl);
   await Post.findByIdAndRemove(postId);
 
+  connections.forEach((connection) => {
+    connection.socket.send(
+      JSON.stringify({ event: 'posts', action: 'delete', post })
+    );
+  });
+
   const user = await User.findById(request.userId);
 
   user.posts.pull(postId);

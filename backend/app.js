@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import fastifyWebsocket from '@fastify/websocket';
 
+import websocket from './socket.js';
 import envToLogger from './utils/logger.js';
 import { feedRoutes } from './routes/feed.js';
 import { authRoutes } from './routes/auth.js';
@@ -28,13 +29,7 @@ app.register(fastifyMultipart, {
 });
 app.register(Cors, { origin: '*' });
 app.register(fastifyWebsocket);
-app.register(async function (fastify) {
-  fastify.get('/', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', (message) => {
-      console.log('Received message from client:', message.toString());
-    });
-  });
-});
+app.register(websocket);
 
 app.register(feedRoutes, { prefix: '/feed' });
 app.register(authRoutes, { prefix: '/auth' });

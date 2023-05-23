@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { Post } from '../models/post.js';
 import { User } from '../models/user.js';
 import { saveImage } from '../utils/saveImage.js';
+import { connections } from '../socket.js';
 
 const getPosts = async (request, reply) => {
   const page = request.query.page || 1;
@@ -39,6 +40,11 @@ const postPost = async (request, reply) => {
 
     reply.code(201);
     reply.log.info('Post created successfully!');
+    connections.forEach((connection) => {
+      connection.socket.send(
+        JSON.stringify({ event: 'posts', action: 'create', post })
+      );
+    });
     return {
       message: 'Post created successfully!',
       post,

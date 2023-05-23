@@ -66,7 +66,6 @@ const login = async (request, reply) => {
 };
 
 const getStatus = async (request, reply) => {
-  console.log(request.userId);
   const user = await User.findById(request.userId);
 
   if (!user) {

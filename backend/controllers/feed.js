@@ -156,7 +156,7 @@ const deletePost = async (request, reply) => {
 
 const clearImage = (filePath) => {
   filePath = path.join(process.cwd(), filePath);
-  fs.unlink(filePath, (err) => console.log(err));
+  fs.unlink(filePath, (err) => console.error(err));
 };
 
 export { getPosts, postPost, getPost, putPost, deletePost };

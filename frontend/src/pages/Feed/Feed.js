@@ -39,45 +39,6 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
-
-    let socket = new WebSocket('ws://localhost:8080');
-
-    socket.onopen = function(e) {
-      console.log('[open] Connection established');
-      console.log('Sending to server');
-    };
-
-    socket.onmessage = function(event) {
-      console.log(`[message] Data received from server: ${event.data}`);
-    };
-
-    socket.onerror = function(error) {
-      console.error(`[error] ${error.message}`);
-    };
-
-    socket.onclose = function(event) {
-      if (event.wasClean) {
-        console.log(
-          `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`
-        );
-      } else {
-        console.log('[close] Connection died');
-      }
-    };
-
-    socket.addEventListener('message', (event) => {
-      const data = JSON.parse(event.data);
-
-      if (!data.event === 'posts') return;
-
-      if (data.action === 'create') {
-        this.addPost(data.post);
-      } else if (data.action === 'update') {
-        this.updatePost(data.post);
-      } else if (data.action === 'delete') {
-        this.deletePost(data.post._id);
-      }
-    });
   }
 
   addPost = (post) => {

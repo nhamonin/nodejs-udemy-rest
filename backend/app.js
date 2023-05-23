@@ -6,7 +6,6 @@ import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { Socket } from 'socket.io';
 import fastifyWebsocket from '@fastify/websocket';
 
 import envToLogger from './utils/logger.js';
@@ -32,7 +31,7 @@ app.register(fastifyWebsocket);
 app.register(async function (fastify) {
   fastify.get('/', { websocket: true }, (connection, req) => {
     connection.socket.on('message', (message) => {
-      console.log('Received message from client:', message);
+      console.log('Received message from client:', message.toString());
     });
   });
 });

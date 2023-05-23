@@ -6,15 +6,16 @@ import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import mercurius from 'mercurius';
 
 import envToLogger from './utils/logger.js';
-import { feedRoutes } from './routes/feed.js';
-import { authRoutes } from './routes/auth.js';
+import schema from './graphql/schema.js';
+import resolvers from './graphql/resolvers.js';
 
 dotenv.config();
 
 const app = fastify({
-  logger: { level: 'error', ...(envToLogger[process.env.environment] ?? true) },
+  logger: { ...(envToLogger[process.env.environment] ?? true) },
 });
 
 app.register(fastifyStatic, {
@@ -26,9 +27,11 @@ app.register(fastifyMultipart, {
   limits: { fileSize: 1024 * 1024 * 10 },
 });
 app.register(Cors, { origin: '*' });
-
-app.register(feedRoutes, { prefix: '/feed' });
-app.register(authRoutes, { prefix: '/auth' });
+app.register(mercurius, {
+  schema,
+  resolvers,
+  graphiql: true,
+});
 
 try {
   await mongoose.connect(process.env.MONGODB_URI);

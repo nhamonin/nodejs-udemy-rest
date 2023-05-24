@@ -57,6 +57,7 @@ const schema = buildSchema(`
     type Mutation {
         createUser(userInput: UserInputData): User!,
         createPost(postInput: PostInputData): Post!
+        updatePost(postId: ID!, postInput: PostInputData): Post!
     }
 
     schema {

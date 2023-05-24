@@ -32,22 +32,20 @@ app.register(fastifyMultipart, {
 app.register(Cors, { origin: '*' });
 app.addHook('preHandler', isAuthenticated);
 app.put('/post-image', async (req, reply) => {
-  const { image } = req.body;
+  const { image, oldPath } = req.body;
+  let imageName = oldPath.value.split('/').pop();
   if (!reply.isAuth) {
     return reply.code(401).send({ message: 'Not authenticated!' });
   }
-  if (!image) {
-    return reply.code(400).send({ message: 'No image provided!' });
+  if (image.mimetype.includes('image')) {
+    if (oldPath) clearImage(oldPath.value);
+    imageName = await saveImage(image);
   }
-  if (!image.mimetype.includes('image')) {
-    return reply.code(400).send({ message: 'Invalid image!' });
-  }
-  if (req.body.oldPath) {
-    clearImage(req.body.oldPath);
-  }
-  const newName = await saveImage(image);
   reply.code(201);
-  return { message: 'File uploaded!', path: `backend/images/${newName}` };
+  return {
+    message: 'File uploaded!',
+    path: `backend/images/${imageName}`,
+  };
 });
 app.register(mercurius, {
   schema,

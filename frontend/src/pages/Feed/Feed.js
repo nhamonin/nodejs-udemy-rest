@@ -200,8 +200,8 @@ class Feed extends Component {
         if (this.state.editPost) {
           graphqlQuery = {
             query: `
-              mutation UpdateExistingPost($id: ID!, $title: String!, $content: String!, $image: String!) {
-                updatePost(id: $id, postInput: {title: $title, content: $content, imageUrl: $image}) {
+              mutation UpdateExistingPost($postId: ID!, $title: String!, $content: String!, $image: String!) {
+                updatePost(postId: $postId, postInput: {title: $title, content: $content, imageUrl: $image}) {
                   _id
                   title
                   content
@@ -214,7 +214,7 @@ class Feed extends Component {
               }
             `,
             variables: {
-              id: this.state.editPost._id,
+              postId: this.state.editPost._id,
               title: postData.title,
               content: postData.content,
               image: imageUrl,
@@ -233,13 +233,16 @@ class Feed extends Component {
             return res.json();
           })
           .then((resData) => {
+            const resDataField = this.state.editPost
+              ? 'updatePost'
+              : 'createPost';
             const post = {
-              _id: resData.data.createPost._id,
-              title: resData.data.createPost.title,
-              content: resData.data.createPost.content,
-              imagePath: resData.data.createPost.imageUrl,
-              creator: resData.data.createPost.creator,
-              createdAt: resData.data.createPost.createdAt,
+              _id: resData.data[resDataField]._id,
+              title: resData.data[resDataField].title,
+              content: resData.data[resDataField].content,
+              imagePath: resData.data[resDataField].imageUrl,
+              creator: resData.data[resDataField].creator,
+              createdAt: resData.data[resDataField].createdAt,
             };
             this.setState((prevState) => {
               let updatedPosts = [...prevState.posts];

@@ -63,7 +63,6 @@ const resolvers = {
         totalItems: totalPosts,
       };
     },
-
     getPost: async (_, args, { reply }) => {
       if (!reply.isAuth) {
         throw new Error('Not authenticated!');
@@ -181,6 +180,52 @@ const resolvers = {
         _id: post._id.toString(),
         createdAt: post.createdAt.toISOString(),
         updatedAt: post.updatedAt.toISOString(),
+      };
+    },
+    updatePost: async (_, { postId, postInput }, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+      const errors = [];
+      const { title, content, imageUrl } = postInput;
+      if (validator.isEmpty(title) || !validator.isLength(title, { min: 5 })) {
+        errors.push({ message: 'Title is invalid.', status: 422 });
+      }
+      if (
+        validator.isEmpty(content) ||
+        !validator.isLength(content, { min: 5 })
+      ) {
+        errors.push({ message: 'Content is invalid.', status: 422 });
+      }
+      if (errors.length > 0) {
+        const error = new Error('Invalid input.');
+        error.extensions = {
+          errors: errors.map((err) => ({
+            message: err.message,
+            status: err.status,
+          })),
+        };
+        throw error;
+      }
+      const post = await Post.findById(postId).populate('creator');
+      if (!post) {
+        throw new Error('No post found!');
+      }
+      if (post.creator._id.toString() !== reply.userId.toString()) {
+        throw new Error('Not authorized!');
+      }
+      post.title = title;
+      post.content = content;
+      if (imageUrl !== 'undefined') {
+        post.imageUrl = imageUrl;
+      }
+      const updatedPost = await post.save();
+
+      return {
+        ...updatedPost._doc,
+        _id: updatedPost._id.toString(),
+        createdAt: updatedPost.createdAt.toISOString(),
+        updatedAt: updatedPost.updatedAt.toISOString(),
       };
     },
   },

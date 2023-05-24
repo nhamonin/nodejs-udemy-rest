@@ -16,18 +16,18 @@ const resolvers = {
     createUser: async (_, args, req) => {
       const errors = [];
       if (!validator.isEmail(args.userInput.email)) {
-        errors.push({ message: 'E-Mail is invalid.' });
+        errors.push({ message: 'E-Mail is invalid.', status: 422 });
       }
       if (
         validator.isEmpty(args.userInput.password) ||
         !validator.isLength(args.userInput.password, { min: 5 })
       ) {
-        errors.push({ message: 'Password too short!' });
+        errors.push({ message: 'Password too short!', status: 422 });
       }
       if (errors.length > 0) {
         const error = new Error('Invalid input.');
         error.extensions = {
-          errors: errors.map((err) => ({ message: err.message })),
+          errors,
         };
         throw error;
       }

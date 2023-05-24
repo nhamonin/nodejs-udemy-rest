@@ -11,6 +11,7 @@ import mercurius from 'mercurius';
 import envToLogger from './utils/logger.js';
 import schema from './graphql/schema.js';
 import resolvers from './graphql/resolvers.js';
+import isAuthenticated from './hooks/auth.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.register(fastifyMultipart, {
   limits: { fileSize: 1024 * 1024 * 10 },
 });
 app.register(Cors, { origin: '*' });
+app.addHook('preHandler', isAuthenticated);
 app.register(mercurius, {
   schema,
   resolvers,

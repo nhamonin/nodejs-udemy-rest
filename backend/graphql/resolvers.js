@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 import { User } from '../models/user.js';
+import { Post } from '../models/post.js';
 
 const resolvers = {
   Query: {
@@ -69,6 +70,53 @@ const resolvers = {
       const createdUser = await user.save();
 
       return { ...createdUser._doc, _id: createdUser._id.toString() };
+    },
+    createPost: async (_, { postInput }, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+      const errors = [];
+      const { title, content, imageUrl } = postInput;
+      if (validator.isEmpty(title) || !validator.isLength(title, { min: 5 })) {
+        errors.push({ message: 'Title is invalid.', status: 422 });
+      }
+      if (
+        validator.isEmpty(content) ||
+        !validator.isLength(content, { min: 5 })
+      ) {
+        errors.push({ message: 'Content is invalid.', status: 422 });
+      }
+      if (errors.length > 0) {
+        const error = new Error('Invalid input.');
+        error.extensions = {
+          errors: errors.map((err) => ({
+            message: err.message,
+            status: err.status,
+          })),
+        };
+        throw error;
+      }
+      const user = await User.findById(reply.userId);
+      if (!user) {
+        throw new Error('Invalid user.');
+      }
+      const post = new Post({
+        title,
+        content,
+        imageUrl,
+        creator: user,
+      });
+      await post.save();
+
+      user.posts.push(post);
+      await user.save();
+
+      return {
+        ...post._doc,
+        _id: post._id.toString(),
+        createdAt: post.createdAt.toISOString(),
+        updatedAt: post.updatedAt.toISOString(),
+      };
     },
   },
 };

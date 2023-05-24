@@ -6,7 +6,6 @@ const schema = buildSchema(`
         title: String!
         content: String!
         imageUrl: String!
-        creator: User!
         createdAt: String!
         updatedAt: String!
     }
@@ -31,6 +30,12 @@ const schema = buildSchema(`
         password: String!
     }
 
+    input PostInputData {
+        title: String!
+        content: String!
+        imageUrl: String!
+    }
+
     type TestData {
         text: String!
         views: Int!
@@ -41,7 +46,8 @@ const schema = buildSchema(`
     }
 
     type Mutation {
-        createUser(userInput: UserInputData): User!
+        createUser(userInput: UserInputData): User!,
+        createPost(postInput: PostInputData): Post!
     }
 
     schema {

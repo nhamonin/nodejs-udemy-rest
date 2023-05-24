@@ -35,7 +35,10 @@ const resolvers = {
         userId: user._id,
       };
     },
-    getPosts: async (_, args, req) => {
+    getPosts: async (_, args, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Not authenticated!');
+      }
       const { page } = args;
       if (!page) {
         page = 1;
@@ -61,7 +64,10 @@ const resolvers = {
       };
     },
 
-    getPost: async (_, args, req) => {
+    getPost: async (_, args, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Not authenticated!');
+      }
       const { postId } = args;
       const post = await Post.findById(postId).populate('creator');
 
@@ -77,6 +83,9 @@ const resolvers = {
       };
     },
     getUser: async (_, args, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Not authenticated!');
+      }
       const user = await User.findById(reply.userId);
 
       if (!user) {
@@ -90,7 +99,10 @@ const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (_, args, req) => {
+    createUser: async (_, args, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Not authenticated!');
+      }
       const errors = [];
       if (!validator.isEmail(args.userInput.email)) {
         errors.push({ message: 'E-Mail is invalid.', status: 422 });

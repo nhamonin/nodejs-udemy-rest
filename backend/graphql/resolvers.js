@@ -1,14 +1,37 @@
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 import { User } from '../models/user.js';
 
 const resolvers = {
   Query: {
-    hello: () => {
+    login: async (_, args, req) => {
+      const { email, password } = args;
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        throw new Error('User does not exist!');
+      }
+
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordCorrect) {
+        throw new Error('Password is incorrect!');
+      }
+
+      const token = jwt.sign(
+        {
+          email: user.email,
+          userId: user._id.toString(),
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
       return {
-        text: 'Hello World!',
-        views: 123,
+        token: token,
+        userId: user._id,
       };
     },
   },
@@ -34,8 +57,7 @@ const resolvers = {
       const existingUser = await User.findOne({ email: args.userInput.email });
 
       if (existingUser) {
-        const error = new Error('User exists already!');
-        throw error;
+        throw new Error('User exists already!');
       }
 
       const hashedPassword = await bcrypt.hash(args.userInput.password, 12);

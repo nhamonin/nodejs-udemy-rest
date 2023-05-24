@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import { User } from '../models/user.js';
 import { Post } from '../models/post.js';
+import { clearImage } from '../utils/clearImage.js';
 
 const resolvers = {
   Query: {
@@ -227,6 +228,27 @@ const resolvers = {
         createdAt: updatedPost.createdAt.toISOString(),
         updatedAt: updatedPost.updatedAt.toISOString(),
       };
+    },
+    deletePost: async (_, { postId }, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+
+      const post = await Post.findById(postId);
+      if (!post) {
+        throw new Error('No post found!');
+      }
+      if (post.creator.toString() !== reply.userId.toString()) {
+        throw new Error('Not authorized!');
+      }
+      await Post.findByIdAndRemove(postId);
+      const user = await User.findById(reply.userId);
+      user.posts.pull(postId);
+      await user.save();
+
+      clearImage(post.imageUrl);
+
+      return true;
     },
   },
 };

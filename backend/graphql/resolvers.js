@@ -250,6 +250,23 @@ const resolvers = {
 
       return true;
     },
+    updateStatus: async (_, { status }, { reply }) => {
+      if (!reply.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+
+      const user = await User.findById(reply.userId);
+      if (!user) {
+        throw new Error('Invalid user.');
+      }
+      user.status = status;
+      await user.save();
+
+      return {
+        ...user._doc,
+        _id: user._id.toString(),
+      };
+    },
   },
 };
 

@@ -116,14 +116,22 @@ class Feed extends Component {
 
   statusUpdateHandler = (event) => {
     event.preventDefault();
-    fetch('http://localhost:8080/auth/status', {
-      method: 'PUT',
+    fetch('http://localhost:8080/graphql', {
+      method: 'POST',
       headers: {
         Authorization: 'Bearer ' + this.props.token,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        status: this.state.status,
+        query: `
+          mutation updateStatus($userStatus: String!) {
+            updateStatus(status: $userStatus) {
+              status
+            }
+          }`,
+        variables: {
+          userStatus: this.state.status,
+        },
       }),
     })
       .then((res) => {

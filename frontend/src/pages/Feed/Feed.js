@@ -22,19 +22,27 @@ class Feed extends Component {
   };
 
   componentDidMount() {
-    fetch('http://localhost:8080/auth/status', {
+    fetch('http://localhost:8080/graphql', {
+      method: 'POST',
       headers: {
         Authorization: 'Bearer ' + this.props.token,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        query: `
+          {
+            getUser {
+              status
+            }
+          }
+        `,
+      }),
     })
       .then((res) => {
-        if (res.status !== 200) {
-          throw new Error('Failed to fetch user status.');
-        }
         return res.json();
       })
       .then((resData) => {
-        this.setState({ status: resData.status });
+        this.setState({ status: resData.data.getUser.status });
       })
       .catch(this.catchError);
 
@@ -54,10 +62,36 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch('http://localhost:8080/feed/posts?page=' + page, {
+    const graphqlQuery = {
+      query: `
+        query getPosts($page: Int!) {
+          getPosts(page: $page) {
+            posts {
+              _id
+              title
+              content
+              imageUrl
+              creator {
+                name
+              }
+              createdAt
+            }
+            totalItems
+          }
+        }
+      `,
+      variables: {
+        page: page,
+      },
+    };
+
+    fetch('http://localhost:8080/graphql', {
       headers: {
         Authorization: 'Bearer ' + this.props.token,
+        'Content-Type': 'application/json',
       },
+      method: 'POST',
+      body: JSON.stringify(graphqlQuery),
     })
       .then((res) => {
         if (res.status !== 200) {
@@ -67,13 +101,13 @@ class Feed extends Component {
       })
       .then((resData) => {
         this.setState({
-          posts: resData.posts.map((post) => {
+          posts: resData.data.getPosts.posts.map((post) => {
             return {
               ...post,
               imagePath: post.imageUrl,
             };
           }),
-          totalPosts: resData.totalItems,
+          totalPosts: resData.data.getPosts.totalItems,
           postsLoading: false,
         });
       })

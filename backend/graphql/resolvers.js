@@ -35,6 +35,59 @@ const resolvers = {
         userId: user._id,
       };
     },
+    getPosts: async (_, args, req) => {
+      const { page } = args;
+      if (!page) {
+        page = 1;
+      }
+      const perPage = 2;
+      const totalPosts = await Post.find().countDocuments();
+      const posts = await Post.find()
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * perPage)
+        .limit(perPage)
+        .populate('creator');
+
+      return {
+        posts: posts.map((post) => {
+          return {
+            ...post._doc,
+            _id: post._id.toString(),
+            createdAt: post.createdAt.toISOString(),
+            updatedAt: post.updatedAt.toISOString(),
+          };
+        }),
+        totalItems: totalPosts,
+      };
+    },
+
+    getPost: async (_, args, req) => {
+      const { postId } = args;
+      const post = await Post.findById(postId).populate('creator');
+
+      if (!post) {
+        throw new Error('Post not found!');
+      }
+
+      return {
+        ...post._doc,
+        _id: post._id.toString(),
+        createdAt: post.createdAt.toISOString(),
+        updatedAt: post.updatedAt.toISOString(),
+      };
+    },
+    getUser: async (_, args, { reply }) => {
+      const user = await User.findById(reply.userId);
+
+      if (!user) {
+        throw new Error('User not found!');
+      }
+
+      return {
+        ...user._doc,
+        _id: user._id.toString(),
+      };
+    },
   },
   Mutation: {
     createUser: async (_, args, req) => {

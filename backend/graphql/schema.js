@@ -42,8 +42,16 @@ const schema = buildSchema(`
         views: Int!
     }
 
+    type PostsData {
+        posts: [Post!]!
+        totalItems: Int!
+    }
+
     type Query {
         login(email: String!, password: String!): AuthData!
+        getPosts(page: Int!): PostsData!,
+        getPost(postId: ID!): Post!
+        getUser: User!
     }
 
     type Mutation {

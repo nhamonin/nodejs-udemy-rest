@@ -8,6 +8,7 @@ const schema = buildSchema(`
         imageUrl: String!
         createdAt: String!
         updatedAt: String!
+        creator: User!
     }
 
     type User {

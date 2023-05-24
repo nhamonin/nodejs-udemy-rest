@@ -162,67 +162,114 @@ class Feed extends Component {
       editLoading: true,
     });
     const formData = new FormData();
-    formData.append('title', postData.title);
-    formData.append('content', postData.content);
     formData.append('image', postData.image);
-    const graphqlQuery = {
-      query: `
-        mutation CreateNewPost($title: String!, $content: String!, $image: String!) {
-          createPost(postInput: {title: $title, content: $content, imageUrl: $image}) {
-            _id
-            title
-            content
-            imageUrl
-            creator {
-              name
-            }
-            createdAt
-          }
-        }
-      `,
-      variables: {
-        title: postData.title,
-        content: postData.content,
-        image: 'postData.image',
-      },
-    };
-
-    fetch('http://localhost:8080/graphql', {
-      method: 'POST',
-      body: JSON.stringify(graphqlQuery),
+    if (this.state.editPost) {
+      formData.append('oldPath', this.state.editPost.imagePath);
+    }
+    fetch('http://localhost:8080/post-image', {
+      method: 'PUT',
       headers: {
         Authorization: 'Bearer ' + this.props.token,
-        'Content-Type': 'application/json',
       },
+      body: formData,
     })
-      .then((res) => {
-        return res.json();
-      })
-      .then((resData) => {
-        const post = {
-          _id: resData.data.createPost._id,
-          title: resData.data.createPost.title,
-          content: resData.data.createPost.content,
-          creator: resData.data.createPost.creator,
-          createdAt: resData.data.createPost.createdAt,
+      .then((res) => res.json())
+      .then((fileResData) => {
+        const imageUrl = fileResData.path || 'undefined';
+        let graphqlQuery = {
+          query: `
+            mutation CreateNewPost($title: String!, $content: String!, $image: String!) {
+              createPost(postInput: {title: $title, content: $content, imageUrl: $image}) {
+                _id
+                title
+                content
+                imageUrl
+                creator {
+                  name
+                }
+                createdAt
+              }
+            }
+          `,
+          variables: {
+            title: postData.title,
+            content: postData.content,
+            image: imageUrl,
+          },
         };
-        this.setState((prevState) => {
-          return {
-            isEditing: false,
-            editPost: null,
-            editLoading: false,
-            posts: [...prevState.posts, post],
+        if (this.state.editPost) {
+          graphqlQuery = {
+            query: `
+              mutation UpdateExistingPost($id: ID!, $title: String!, $content: String!, $image: String!) {
+                updatePost(id: $id, postInput: {title: $title, content: $content, imageUrl: $image}) {
+                  _id
+                  title
+                  content
+                  imageUrl
+                  creator {
+                    name
+                  }
+                  createdAt
+                }
+              }
+            `,
+            variables: {
+              id: this.state.editPost._id,
+              title: postData.title,
+              content: postData.content,
+              image: imageUrl,
+            },
           };
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-        this.setState({
-          isEditing: false,
-          editPost: null,
-          editLoading: false,
-          error: err,
-        });
+        }
+        return fetch('http://localhost:8080/graphql', {
+          method: 'POST',
+          body: JSON.stringify(graphqlQuery),
+          headers: {
+            Authorization: 'Bearer ' + this.props.token,
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then((resData) => {
+            const post = {
+              _id: resData.data.createPost._id,
+              title: resData.data.createPost.title,
+              content: resData.data.createPost.content,
+              imagePath: resData.data.createPost.imageUrl,
+              creator: resData.data.createPost.creator,
+              createdAt: resData.data.createPost.createdAt,
+            };
+            this.setState((prevState) => {
+              let updatedPosts = [...prevState.posts];
+              if (prevState.editPost) {
+                const postIndex = prevState.posts.findIndex(
+                  (p) => p._id === prevState.editPost._id
+                );
+                updatedPosts[postIndex] = post;
+              } else {
+                updatedPosts.pop();
+                updatedPosts.unshift(post);
+              }
+
+              return {
+                isEditing: false,
+                editPost: null,
+                editLoading: false,
+                posts: updatedPosts,
+              };
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+            this.setState({
+              isEditing: false,
+              editPost: null,
+              editLoading: false,
+              error: err,
+            });
+          });
       });
   };
 

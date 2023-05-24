@@ -12,6 +12,8 @@ import envToLogger from './utils/logger.js';
 import schema from './graphql/schema.js';
 import resolvers from './graphql/resolvers.js';
 import isAuthenticated from './hooks/auth.js';
+import { saveImage } from './utils/saveImage.js';
+import { clearImage } from './utils/clearImage.js';
 
 dotenv.config();
 
@@ -29,6 +31,24 @@ app.register(fastifyMultipart, {
 });
 app.register(Cors, { origin: '*' });
 app.addHook('preHandler', isAuthenticated);
+app.put('/post-image', async (req, reply) => {
+  const { image } = req.body;
+  if (!reply.isAuth) {
+    return reply.code(401).send({ message: 'Not authenticated!' });
+  }
+  if (!image) {
+    return reply.code(400).send({ message: 'No image provided!' });
+  }
+  if (!image.mimetype.includes('image')) {
+    return reply.code(400).send({ message: 'Invalid image!' });
+  }
+  if (req.body.oldPath) {
+    clearImage(req.body.oldPath);
+  }
+  const newName = await saveImage(image);
+  reply.code(201);
+  return { message: 'File uploaded!', path: `backend/images/${newName}` };
+});
 app.register(mercurius, {
   schema,
   resolvers,

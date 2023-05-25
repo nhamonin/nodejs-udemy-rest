@@ -1,4 +1,7 @@
 import { expect } from 'chai';
+import jwt from 'jsonwebtoken';
+import sinon from 'sinon';
+
 import isAuthenticated from '../hooks/is-auth.js';
 
 describe('isAuthenticated Hook', () => {
@@ -55,5 +58,30 @@ describe('isAuthenticated Hook', () => {
     } catch (err) {
       expect(err.message).to.equal('Not authenticated.');
     }
+  });
+
+  it('should yield a userId if the authorization header is a valid bearer token', async () => {
+    const req = {
+      headers: {
+        authorization: 'Bearer valid-bearer-token',
+      },
+    };
+    const reply = {
+      code: () => {},
+    };
+
+    sinon.stub(jwt, 'verify');
+    jwt.verify.returns({
+      userId: 'valid-user-id',
+    });
+
+    try {
+      await isAuthenticated(req, reply);
+      expect(req.userId).to.equal('valid-user-id');
+    } catch (err) {
+      throw new Error('Expected isAuthenticated to not throw, but it did.');
+    }
+
+    jwt.verify.restore();
   });
 });

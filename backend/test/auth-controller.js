@@ -8,6 +8,25 @@ import { User } from '../models/user.js';
 import { login, getStatus } from '../controllers/auth.js';
 
 describe('Auth Controller - Login', () => {
+  const userId = '5c0f66b979af55031b34728a';
+  before(async () => {
+    const user = new User({
+      email: 'test12345@gmail.com',
+      password: 'test12345',
+      name: 'Testqq',
+      posts: [],
+      _id: userId,
+    });
+
+    await mongoose.connect(process.env.MONGODB_URI_TEST);
+    await user.save();
+  });
+
+  after(async () => {
+    await User.deleteMany({});
+    await mongoose.disconnect();
+  });
+
   it('should throw an error with error 500 if accessing the database fails', async () => {
     sinon.stub(User, 'findOne');
     User.findOne.throws();
@@ -35,17 +54,6 @@ describe('Auth Controller - Login', () => {
   });
 
   it('should send a response with a valid user status for an existing user', async () => {
-    const userId = '5c0f66b979af55031b34728a';
-    const user = new User({
-      email: 'test12345@gmail.com',
-      password: 'test12345',
-      name: 'Testqq',
-      posts: [],
-      _id: userId,
-    });
-
-    await mongoose.connect(process.env.MONGODB_URI_TEST);
-    await user.save();
     const req = {
       userId,
       statusCode: 500,
@@ -59,7 +67,5 @@ describe('Auth Controller - Login', () => {
     const res = await getStatus(req, reply);
     expect(reply.statusCode).to.equal(200);
     expect(res.status).to.equal('I am new!');
-    await User.deleteMany({});
-    await mongoose.disconnect();
   });
 });

@@ -6,19 +6,17 @@ import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import mercurius from 'mercurius';
+import fastifyWebsocket from '@fastify/websocket';
 
+import websocket from './socket.js';
 import envToLogger from './utils/logger.js';
-import schema from './graphql/schema.js';
-import resolvers from './graphql/resolvers.js';
-import isAuthenticated from './hooks/auth.js';
-import { saveImage } from './utils/saveImage.js';
-import { clearImage } from './utils/clearImage.js';
+import { feedRoutes } from './routes/feed.js';
+import { authRoutes } from './routes/auth.js';
 
 dotenv.config();
 
 const app = fastify({
-  logger: { ...(envToLogger[process.env.environment] ?? true) },
+  logger: { level: 'error', ...(envToLogger[process.env.environment] ?? true) },
 });
 
 app.register(fastifyStatic, {
@@ -30,28 +28,11 @@ app.register(fastifyMultipart, {
   limits: { fileSize: 1024 * 1024 * 10 },
 });
 app.register(Cors, { origin: '*' });
-app.addHook('preHandler', isAuthenticated);
-app.put('/post-image', async (req, reply) => {
-  const { image, oldPath } = req.body;
-  let imageName = oldPath.value.split('/').pop();
-  if (!reply.isAuth) {
-    return reply.code(401).send({ message: 'Not authenticated!' });
-  }
-  if (image.mimetype.includes('image')) {
-    if (oldPath) clearImage(oldPath.value);
-    imageName = await saveImage(image);
-  }
-  reply.code(201);
-  return {
-    message: 'File uploaded!',
-    path: `backend/images/${imageName}`,
-  };
-});
-app.register(mercurius, {
-  schema,
-  resolvers,
-  graphiql: true,
-});
+app.register(fastifyWebsocket);
+app.register(websocket);
+
+app.register(feedRoutes, { prefix: '/feed' });
+app.register(authRoutes, { prefix: '/auth' });
 
 try {
   await mongoose.connect(process.env.MONGODB_URI);

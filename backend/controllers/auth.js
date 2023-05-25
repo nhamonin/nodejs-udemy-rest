@@ -32,37 +32,42 @@ const signup = async (request, reply) => {
 };
 
 const login = async (request, reply) => {
-  const { email, password } = request.body;
+  try {
+    const { email, password } = request.body;
 
-  const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email: email });
 
-  if (!user) {
-    reply.code(401);
-    throw new Error('User does not exist!');
+    if (!user) {
+      reply.code(401);
+      throw new Error('User does not exist!');
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      reply.code(401);
+      throw new Error('Password is incorrect!');
+    }
+
+    const token = jwt.sign(
+      {
+        email: user.email,
+        userId: user._id.toString(),
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    reply.code(200);
+    reply.log.info('User logged in successfully!');
+    return {
+      token: token,
+      userId: user._id,
+    };
+  } catch (err) {
+    reply.code(500);
+    throw new Error('Internal Server Error');
   }
-
-  const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordCorrect) {
-    reply.code(401);
-    throw new Error('Password is incorrect!');
-  }
-
-  const token = jwt.sign(
-    {
-      email: user.email,
-      userId: user._id.toString(),
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-  );
-
-  reply.code(200);
-  reply.log.info('User logged in successfully!');
-  return {
-    token: token,
-    userId: user._id,
-  };
 };
 
 const getStatus = async (request, reply) => {

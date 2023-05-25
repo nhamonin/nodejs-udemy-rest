@@ -1,7 +1,14 @@
 import jwt from 'jsonwebtoken';
 
 async function isAuthenticated(request, reply) {
-  const [bearer, authHeader] = request.headers['authorization'].split(' ');
+  const { authorization } = request.headers;
+
+  if (!authorization) {
+    reply.code(401);
+    throw new Error('Not authenticated.');
+  }
+
+  const [bearer, authHeader] = authorization?.split(' ');
   let decodedToken;
 
   try {

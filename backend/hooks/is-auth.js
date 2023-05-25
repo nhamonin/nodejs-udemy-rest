@@ -9,13 +9,19 @@ async function isAuthenticated(request, reply) {
   }
 
   const [bearer, authHeader] = authorization?.split(' ');
+
+  if (!bearer || !authHeader) {
+    reply.code(401);
+    throw new Error('Not authenticated.');
+  }
+
   let decodedToken;
 
   try {
     decodedToken = jwt.verify(authHeader, process.env.JWT_SECRET);
   } catch (err) {
-    reply.code(500);
-    throw new Error('Something went wrong.');
+    reply.code(401);
+    throw new Error('Not authenticated.');
   }
 
   if (!decodedToken) {

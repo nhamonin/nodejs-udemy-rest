@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const uploadDir = path.resolve('backend', 'images');
+const uploadDir = path.resolve('images');
 
 export const saveImage = async (image) => {
   const [name, ext] = image.filename.split('.');
-  const newName = `${name}-${Date.now()}.${ext}`;
+  const newName = `${name}.${ext}`;
   const uploadPath = path.join(uploadDir, newName);
   const fileStream = fs.createWriteStream(uploadPath);
   const file = await image.toBuffer();

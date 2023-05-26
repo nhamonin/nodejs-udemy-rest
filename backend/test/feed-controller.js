@@ -8,14 +8,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { User } from '../models/user.js';
-import { Post } from '../models/post.js';
-import {
-  getPosts,
-  postPost,
-  getPost,
-  putPost,
-  deletePost,
-} from '../controllers/feed.js';
+import { postPost } from '../controllers/feed.js';
+import imageUtils from '../utils/imageUtils.js';
 
 describe('Feed Controller', () => {
   const userId = '5c0f66b979af55031b34728a';
@@ -67,7 +61,6 @@ describe('Feed Controller', () => {
         },
       },
     };
-    console.log(path.resolve(process.cwd(), '..', 'images', 'test.png'));
     const reply = {
       statusCode: 500,
       response: null,
@@ -88,10 +81,14 @@ describe('Feed Controller', () => {
         },
       },
     };
+    const saveImageStub = sinon.stub(imageUtils, 'saveImage');
+    saveImageStub.returns('test.png');
 
     await postPost(req, reply);
     const user = await User.findById(userId);
     expect(user).to.have.property('posts');
     expect(user.posts).to.have.length(1);
+
+    sinon.restore();
   });
 });

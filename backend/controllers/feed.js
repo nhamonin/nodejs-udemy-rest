@@ -1,9 +1,6 @@
-import path from 'node:path';
-import fs from 'node:fs';
-
 import { Post } from '../models/post.js';
 import { User } from '../models/user.js';
-import { saveImage } from '../utils/saveImage.js';
+import imageUtils from '../utils/imageUtils.js';
 import { connections } from '../socket.js';
 
 const getPosts = async (request, reply) => {
@@ -26,7 +23,7 @@ const getPosts = async (request, reply) => {
 const postPost = async (request, reply) => {
   try {
     const { title, content, image } = request.body;
-    const newName = await saveImage(image);
+    const newName = await imageUtils.saveImage(image);
     const post = new Post({
       title: title.value,
       content: content.value,
@@ -87,7 +84,7 @@ const putPost = async (request, reply) => {
   let imageUrl = image.value;
 
   if (image.mimetype.includes('image')) {
-    let newName = await saveImage(image);
+    let newName = await imageUtils.saveImage(image);
     imageUrl = `backend/images/${newName}`;
   }
 
@@ -114,7 +111,7 @@ const putPost = async (request, reply) => {
     };
   }
 
-  imageUrl !== post.imageUrl && clearImage(post.imageUrl);
+  imageUrl !== post.imageUrl && imageUtils.clearImage(post.imageUrl);
   post.title = title.value;
   post.content = content.value;
   post.imageUrl = imageUrl;
@@ -151,7 +148,7 @@ const deletePost = async (request, reply) => {
     };
   }
 
-  clearImage(post.imageUrl);
+  imageUtils.clearImage(post.imageUrl);
   await Post.findByIdAndRemove(postId);
 
   connections.forEach((connection) => {
@@ -169,11 +166,6 @@ const deletePost = async (request, reply) => {
   return {
     message: 'Post deleted successfully!',
   };
-};
-
-const clearImage = (filePath) => {
-  filePath = path.join(process.cwd(), filePath);
-  fs.unlink(filePath, (err) => console.error(err));
 };
 
 export { getPosts, postPost, getPost, putPost, deletePost };
